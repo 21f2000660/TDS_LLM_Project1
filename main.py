@@ -202,7 +202,7 @@ function_descriptions = [
     },
     {
         "name": "process_image",
-        "description": "Resize an image to 50% of its original size",
+        "description": "Resize an image to the user requirements",
         "parameters": {
             "type": "object",
             "properties": {},
