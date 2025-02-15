@@ -127,7 +127,7 @@ function_descriptions = [
                     "description": "The original task description (unused in this function)"
                 }
             },
-            "required": ["task"]
+            "required": ["apiEndPoint"]
         }
     },
     {
@@ -141,13 +141,31 @@ function_descriptions = [
                     "description": "The original task description (unused in this function)"
                 }
             },
-            "required": ["task"]
+            "required": ["repoLink"]
         }
     },
     {
         "name": "run_sql_query",
         "description": "Execute a SQL query to calculate total sales for Gold tickets",
-        "parameters": {
+        "parameters": [{
+            "type": "object",
+            "properties": {
+                "dbLocation": {
+                    "type": "string",
+                    "description": "The location and name of the database to be read"
+                },
+                "fileLocation": {
+                    "type": "string",
+                    "description": "The location and name of the new file on which the result will be written"
+                },
+                "sqlQuery": {
+                    "type": "string",
+                    "description": "This is the SQL query to be executed on the database"
+                }
+            },
+            "required": ["dbLocation","fileLocation","sqlQuery"]
+        },
+        {
             "type": "object",
             "properties": {
                 "task": {
@@ -156,7 +174,17 @@ function_descriptions = [
                 }
             },
             "required": ["task"]
-        }
+        },
+        {
+            "type": "object",
+            "properties": {
+                "task": {
+                    "type": "string",
+                    "description": "The original task description (unused in this function)"
+                }
+            },
+            "required": ["task"]
+        }]
     },
     {
         "name": "scrape_website",
@@ -169,7 +197,7 @@ function_descriptions = [
                     "description": "The original task description (unused in this function)"
                 }
             },
-            "required": ["task"]
+            "required": ["websiteLink"]
         }
     },
     {
@@ -177,13 +205,8 @@ function_descriptions = [
         "description": "Resize an image to 50% of its original size",
         "parameters": {
             "type": "object",
-            "properties": {
-                "task": {
-                    "type": "string",
-                    "description": "The original task description (unused in this function)"
-                }
-            },
-            "required": ["task"]
+            "properties": {},
+            "required": []        
         }
     },
     {
@@ -191,13 +214,8 @@ function_descriptions = [
         "description": "Transcribe an audio file using the Whisper tool",
         "parameters": {
             "type": "object",
-            "properties": {
-                "task": {
-                    "type": "file",
-                    "description": "The original task description (unused in this function)"
-                }
-            },
-            "required": ["audioFile"]
+            "properties": {},
+            "required": []        
         }
     },
     {
@@ -205,13 +223,8 @@ function_descriptions = [
         "description": "Convert a Markdown file to HTML using Pandoc",
         "parameters": {
             "type": "object",
-            "properties": {
-                "task": {
-                    "type": "string",
-                    "description": "The original task description (unused in this function)"
-                }
-            },
-            "required": ["task"]
+            "properties": {},
+            "required": []        
         }
     },
     {
@@ -219,13 +232,8 @@ function_descriptions = [
         "description": "Filter a CSV file based on a criteria and convert it to JSON",
         "parameters": {
             "type": "object",
-            "properties": {
-                "task": {
-                    "type": "string",
-                    "description": "The original task description (unused in this function)"
-                }
-            },
-            "required": ["task"]
+            "properties": {},
+            "required": []        
         }
     }
 ]
@@ -301,13 +309,13 @@ def execute_task(task):
                 elif function_name == 'calculate_ticket_sales': #A10
                     return calculate_ticket_sales()
                 elif function_name == 'fetch_data_from_api': #B3
-                    return fetch_data_from_api()
+                    return fetch_data_from_api(arguments[0])
                 elif function_name == 'clone_git_repo': #B4
-                    return clone_git_repo()
+                    return clone_git_repo(arguments[0])
                 elif function_name == 'run_sql_query': #B5
-                    return run_sql_query()
+                    return run_sql_query(arguments[0], arguments[1], arguments[2])
                 elif function_name == 'scrape_website': #B6
-                    return scrape_website()
+                    return scrape_website(arguments[0])
                 elif function_name == 'process_image': #B7
                     return process_image()
                 elif function_name == 'transcribe_audio': #B8
@@ -524,14 +532,14 @@ def clone_git_repo(repoLink):
     except Exception as e:
         return jsonify({"error": "Failed to clone repository", "details": str(e)}), 500
 
-def run_sql_query():
+def run_sql_query(dbLocation, fileLocation, queryToRun):
     try:
-        conn = sqlite3.connect("/data/database.db")
+        conn = sqlite3.connect(dbLocation)
         cursor = conn.cursor()
-        cursor.execute("SELECT SUM(price * units) FROM tickets WHERE type='Gold'")
+        cursor.execute(queryToRun)
         result = cursor.fetchone()[0]
         conn.close()
-        with open("/data/ticket-sales-gold.txt", "w") as f:
+        with open(fileLocation, "w") as f:
             f.write(str(result or 0))  # Handle potential None value
         return jsonify({"message": "SQL query executed successfully."}), 200
     except sqlite3.Error as e:
