@@ -549,7 +549,7 @@ def extract_email_sender(input_file = None, output_file = None):
         with open(input_file, "r") as f:
             email_content = f.read()
 
-        sysMsg = "Extract the sender's email address from the given email content."
+        sysMsg = "Extract the from or sender's email address from the given email content and send only the email address in the response, no other words"
         usrMsg = email_content
 
         response = invokeOpenAIProxy(sysMsg, usrMsg)
@@ -604,7 +604,7 @@ def find_similar_comments(input_file = None, output_file = None):
         }
 
         data = {
-            "model": "text-embedding-ada-002",
+            "model": "gpt-4o-mini",
             "encoding_format": "float"
         }
 
